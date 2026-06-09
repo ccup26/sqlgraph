@@ -1,0 +1,91 @@
+version: 1
+
+confidence_policy:
+  user_confirmed:
+    rank: 100
+    description: 用户明确确认的事实。
+  user_provided_sql:
+    rank: 90
+    description: 用户在对话中提供的 SQL，可作为指标、过滤和关系候选证据。
+  source_declared_schema:
+    rank: 85
+    description: 外部数据源明确声明的表、字段、主键、软删除或枚举信息。
+  source_declared_relationship:
+    rank: 85
+    description: 外部数据源明确声明的表关系或字段级外键映射。
+  source_model_enum:
+    rank: 85
+    description: 外部表模型中声明的枚举字典值。
+  database_foreign_key:
+    rank: 85
+    description: 数据库物理外键。若项目数据库很少使用物理外键，不要假设存在。
+  xml_join:
+    rank: 75
+    description: XML SQL 中的 join/on 关系。
+  annotation_select:
+    rank: 70
+    description: 注解 SQL 中的 join/on 关系。
+  query_wrapper:
+    rank: 60
+    description: QueryWrapper、LambdaQueryWrapper、MD.query 等查询逻辑。
+  service_assembly:
+    rank: 55
+    description: Service 层分批查询、IN 查询、组装逻辑。
+  field_comment:
+    rank: 45
+    description: 字段注释，可作为实体字段或业务术语候选。
+  repeated_sql_usage:
+    rank: 45
+    description: 历史 SQL 中反复出现的相同用法。
+  field_name_guess:
+    rank: 20
+    description: 仅根据字段名猜测，不能作为 confirmed 事实。
+
+evidence: {}
+
+# Example:
+# evidence:
+#   entity_contract_table_mapping:
+#     type: source_declared_schema
+#     source: semantic_model/DATA_SOURCE.md:example_schema_doc
+#     target:
+#       kind: entity
+#       name: contract
+#     detail: con_head_tr is described as 合同主表。
+#     confidence: high
+#     status: draft
+#
+#   fk_delivery_note_sales_order:
+#     type: source_declared_relationship
+#     source: semantic_model/DATA_SOURCE.md:example_relation_doc
+#     target:
+#       kind: entity_foreign_key
+#       entity: delivery_note
+#       field: rel_sls_order_id
+#     detail: delivery_note.rel_sls_order_id references sales_order.id.
+#     confidence: high
+#     status: draft
+#
+#   rel_sales_order_to_delivery_note_sql_join:
+#     type: xml_join
+#     source: erp-dn-*/src/main/resources/**/*.xml
+#     target:
+#       kind: relationship
+#       name: sales_order_to_delivery_note
+#     detail: del_dn_head_tr.rel_sls_order_id = sls_so_head_tr.id
+#     confidence: medium_high
+#     status: draft
+
+conflicts: {}
+
+# Record unresolved conflicts here instead of silently overwriting model facts.
+# Example:
+# conflicts:
+#   conflict_001:
+#     status: open
+#     existing: delivery_note.biz_status = POSTED means 发货单已过账
+#     incoming: delivery_note.status = AUDITED described as 已过账
+#     sources:
+#       - rel_or_metric_source_a
+#       - rel_or_metric_source_b
+#     required_action: Ask user whether to keep existing, update, or add a scoped new fact.

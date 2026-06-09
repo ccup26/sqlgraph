@@ -1,0 +1,111 @@
+version: 1
+
+entities: {}
+
+relationships: {}
+
+metrics: {}
+
+business_terms: {}
+
+# Keep entities minimal. Ordinary query fields belong in metrics.
+# Example:
+# entities:
+#   contract:
+#     table: con_head_tr
+#     description: 合同
+#     primary_key: id
+#     soft_delete:
+#       field: deleted
+#       active_value: 0
+#     status: draft
+#     confidence: medium
+#     evidence:
+#       - entity_contract_table_mapping
+#     foreign_keys:
+#       customer_id:
+#         references: customer.id
+#         status: draft
+#         confidence: medium
+#         evidence:
+#           - fk_contract_customer_id
+#
+# Entity foreign keys are atomic field facts. Relationships describe named
+# reusable associations or business paths.
+# Example:
+# relationships:
+#   sales_order_to_delivery_note:
+#     from: sales_order
+#     to: delivery_note
+#     join:
+#       left: delivery_note.rel_sls_order_id
+#       op: =
+#       right: sales_order.id
+#     cardinality: one_to_many
+#     status: draft
+#     confidence: medium_high
+#     evidence:
+#       - rel_sales_order_to_delivery_note_sql_join
+#
+# Metrics describe reusable business meaning.
+# Example:
+# metrics:
+#   contract_posted_dn_settle_qty:
+#     name: 合同已过账发货结算数量
+#     aliases:
+#       - 合同已过账发货数量
+#       - 合同已过账交货数量
+#       - 合同已过账数量
+#     description: 统计合同关联销售订单下已过账发货单明细的结算数量合计
+#     grain: contract
+#     measure:
+#       source: delivery_note_item.settle_qty
+#       aggregation: sum
+#       aliases: [结算数量, 发货数量, 交货数量, 数量]
+#       result_alias: contract_posted_dn_settle_qty
+#     paths:
+#       - name: customer_contract_path
+#         relationships:
+#           - contract_to_sales_order_by_customer_contract
+#           - sales_order_to_delivery_note
+#           - delivery_note_to_item
+#       - name: vendor_contract_path
+#         relationships:
+#           - contract_to_sales_order_by_vendor_contract
+#           - sales_order_to_delivery_note
+#           - delivery_note_to_item
+#     filters:
+#       - source: delivery_note.biz_status
+#         op: =
+#         value: POSTED
+#         meaning: 发货单已过账
+#     parameters:
+#       contract_code:
+#         source: contract.ct_code
+#         type: string
+#         aliases: [合同code, 合同编号, 合同号, 合同编码]
+#       contract_id:
+#         source: contract.id
+#         type: long
+#         aliases: [合同id, 合同ID]
+#     examples:
+#       - 根据合同code查询已过账的数量
+#       - 根据合同编号统计已过账发货单明细的结算数量
+#       - 用合同编号查询已过账交货数量
+#
+# Terms must be scoped. Avoid global meanings for ambiguous words.
+# Example:
+# business_terms:
+#   delivery_note:
+#     terms:
+#       已过账:
+#         maps_to:
+#           source: delivery_note.biz_status
+#           op: =
+#           value: POSTED
+#         aliases: [过账, 已过账]
+#   contract_posted_dn_settle_qty:
+#     terms:
+#       数量:
+#         maps_to: delivery_note_item.settle_qty
+#         note: 在该指标下，数量默认指发货单明细结算数量。
